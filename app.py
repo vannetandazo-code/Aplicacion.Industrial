@@ -6,14 +6,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Configuración visual de alta gama corporativa
-st.set_page_config(page_title="DISTRI-FIT PRO", layout="wide", page_icon="📊")
+st.set_page_config(page_title="DISTRI-FIT PRO v3", layout="wide", page_icon="📊")
 
 # Estilos de encabezado industrial
 st.markdown("""
     <div style='background-color:#0f172a; padding:25px; border-radius:12px; margin-bottom:25px; border-left: 8px solid #3b82f6;'>
         <h1 style='color:white; margin:0; text-align:center; font-family:sans-serif;'>📊 SOFTWARE INDUSTRIAL "DISTRI-FIT PRO"</h1>
         <p style='color:#94a3b8; margin:8px 0 0 0; text-align:center; font-style:italic; font-size:12pt;'>
-            Plataforma Avanzada de Ajuste Multidistribución, Gestión de Riesgo Contractual y Simulación Estocástica
+            Plataforma Grupal Avanzada de Ajuste Multidistribución, Auditoría Forense SPC y Simulación Estocástica
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -31,9 +31,9 @@ if archivo is not None:
         
         if len(datos) >= 5:
             # ---------------------------------------------------------
-            # PESTAÑAS PRINCIPALES (Para organizar el contenido de forma elegante)
+            # PESTAÑAS PRINCIPALES
             # ---------------------------------------------------------
-            tab1, tab2, tab3 = st.tabs(["📊 Ajuste Estadístico", "🎯 Análisis de Riesgo", "🚀 Simulación Monte Carlo"])
+            tab1, tab2, tab3 = st.tabs(["📊 Ajuste Estadístico y SPC", "🎯 Análisis de Riesgo y Recomendaciones", "🚀 Simulación Monte Carlo"])
             
             with tab1:
                 st.subheader("📋 Métricas Descriptivas de la Muestra")
@@ -75,7 +75,7 @@ if archivo is not None:
                 dist_ganadora = df_res.iloc[0]["Distribución Evaluada"]
                 st.success(f"🎯 **Conclusión Estadística:** La distribución ganadora que mejor modela este proceso es la **{dist_ganadora}**.")
                 
-                # Desglose de Parámetros Técnicos (PLUS 1)
+                # Desglose de Parámetros Técnicos
                 st.subheader("🧬 Parámetros de Diseño Descubiertos (MLE)")
                 params_ganadores = ajustes[dist_ganadora]
                 
@@ -85,7 +85,7 @@ if archivo is not None:
                 with cp2:
                     st.write("📝 *Nota para simulación:* Copia estos valores exactos en tus modelos de simulación de eventos discretos para replicar el comportamiento real de la planta de forma matemática.")
                 
-                # Gráfica interactiva corregida
+                # Gráfica interactiva 1: Histograma vs Curva Teórica
                 st.subheader("📈 Verificación Gráfica del Acoplamiento")
                 fig = px.histogram(df, x=columna, nbins=30, histnorm='probability density', 
                                    opacity=0.5, title=f"Histograma Real vs. Modelo Continuo {dist_ganadora}", 
@@ -95,9 +95,28 @@ if archivo is not None:
                 y_axis = distribuciones[dist_ganadora].pdf(x_axis, *params_ganadores)
                 fig.add_trace(go.Scatter(x=x_axis, y=y_axis, mode='lines', name=dist_ganadora, line=dict(color='#3b82f6', width=3.5)))
                 st.plotly_chart(fig, use_container_width=True)
+
+                # NUEVO GRÁFICO 2: Control Estadístico de Procesos (SPC) - Gráfico de Corridas
+                st.markdown("---")
+                st.subheader("📉 Auditoría Forense: Gráfico de Control y Tendencia del Proceso (SPC)")
+                st.write("Visualiza la evolución temporal de la variable e identifica rachas fuera de estabilidad:")
+                
+                indices = np.arange(1, len(datos) + 1)
+                fig_spc = go.Figure()
+                # Línea de corridas reales
+                fig_spc.add_trace(go.Scatter(x=indices, y=datos, mode='lines+markers', name='Valor Registrado', line=dict(color='#64748b', width=1.5)))
+                # Línea de Promedio
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.mean(datos)]*len(datos), mode='lines', name='Línea Central (Promedio)', line=dict(color='#16a34a', dash='dash', width=2)))
+                # Línea de Máximo histórico
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.max(datos)]*len(datos), mode='lines', name='Línea Máximo', line=dict(color='#dc2626', dash='dot', width=1.5)))
+                # Línea de Mínimo histórico
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.min(datos)]*len(datos), mode='lines', name='Línea Mínimo', line=dict(color='#2563eb', dash='dot', width=1.5)))
+                
+                fig_spc.update_layout(title="Evolución Cronológica del Proceso y Líneas de Control Físico", xaxis_title="Orden de Corrida / Lote", yaxis_title="Magnitud Medida", layout_hint="wide")
+                st.plotly_chart(fig_spc, use_container_width=True)
             
             with tab2:
-                # MÓDULO PLUS 2: Gestión y Análisis de Riesgo Operativo
+                # MÓDULO: Gestión y Análisis de Riesgo Operativo
                 st.subheader("🎯 Auditoría de Riesgo Contractual y Capacidad de Proceso")
                 st.write("Ingresa los límites específicos acordados con tu cliente para evaluar el nivel de cumplimiento del proceso:")
                 
@@ -121,13 +140,52 @@ if archivo is not None:
                     colr2.metric("Riesgo de Rechazo por Defecto (Por debajo)", f"{prob_debajo*100:.2f} %")
                     colr3.metric("Riesgo de Entrega Tardía (Por encima)", f"{prob_encima*100:.2f} %")
                     
-                    # Semáforo de decisión ejecutiva
+                    st.markdown("---")
+                    st.subheader("📋 Consultor de Operaciones Automatizado: Recomendaciones Técnicas")
+                    
+                    # NUEVO PLUS: Generador de Recomendaciones Inteligentes Basadas en Riesgo
                     if prob_dentro >= 0.90:
-                        st.success("🟢 **Dictamen Operativo:** El proceso cuenta con alta estabilidad. Nivel de riesgo bajo controlado.")
+                        st.markdown("""
+                            <div style='background-color:#f0fdf4; padding:20px; border-radius:8px; border-left:6px solid #16a34a;'>
+                                <h4 style='color:#14532d; margin:0;'>🟢 ESTADO: PROCESO BAJO CONTROL TÉCNICO Y COMERCIAL</h4>
+                                <p style='color:#166534; margin-top:10px; font-size:11pt;'>
+                                    El proceso actual demuestra una capacidad sobresaliente y un nivel mínimo de pérdidas estructurales. Se recomiendan las siguientes acciones:
+                                </p>
+                                <ul style='color:#166534; font-size:10.5pt;'>
+                                    <li><strong>Estandarización Continua:</strong> Formalizar las variables operativas de la corrida actual en guías de mejores prácticas operacionales (SOP).</li>
+                                    <li><strong>Mantenimiento Preventivo Planificado:</strong> Mantener los ciclos vigentes de calibración y lubricación de equipos mecánicos para conservar este nivel de variabilidad controlada.</li>
+                                    <li><strong>Alineación Comercial:</strong> Utilizar este simulador interactivo para negociar de manera segura tolerancias contractuales aún más estrictas con nuevos clientes estratégicos sin poner en peligro los márgenes financieros.</li>
+                                </ul>
+                            </div>
+                        """, unsafe_allow_html=True)
                     elif prob_dentro >= 0.75:
-                        st.warning("🟡 **Dictamen Operativo:** Precaución. El proceso muestra variabilidad moderada que amenaza los márgenes comerciales.")
+                        st.markdown("""
+                            <div style='background-color:#fffbeb; padding:20px; border-radius:8px; border-left:6px solid #d97706;'>
+                                <h4 style='color:#78350f; margin:0;'>🟡 ESTADO: PRECAUCIÓN - PROCESO CON VARIABILIDAD AMENAZANTE</h4>
+                                <p style='color:#92400e; margin-top:10px; font-size:11pt;'>
+                                    La variabilidad física del sistema está comenzando a invadir las zonas de tolerancia comercial del cliente. Se requiere atención proactiva inmediata:
+                                </p>
+                                <ul style='color:#92400e; font-size:10.5pt;'>
+                                    <li><strong>Auditoría de Cuellos de Botella Mecánicos:</strong> Inspeccionar los sistemas mecánicos auxiliares, tolvas o dosificadores para descartar atascos periódicos o microparadas mecánicas recurrentes.</li>
+                                    <li><strong>Control Térmico e Instrumentación:</strong> Verificar la calibración de los sensores de temperatura y presión en las calderas o reactores para evitar que la variación cinética mueva el promedio real del proceso.</li>
+                                    <li><strong>Monitoreo en Tiempo Real:</strong> Utilizar de forma diaria el Gráfico de Control SPC (Módulo 1 de esta aplicación) para identificar tendencias acumulativas antes de que los lotes comiencen a salir defectuosos de forma permanente.</li>
+                                </ul>
+                            </div>
+                        """, unsafe_allow_html=True)
                     else:
-                        st.error("🔴 **Dictamen Operativo:** Proceso Fuera de Control Técnico. Alto índice de mermas o entregas tardías estructurales. Requiere intervención inmediata.")
+                        st.markdown("""
+                            <div style='background-color:#fef2f2; padding:20px; border-radius:8px; border-left:6px solid #dc2626;'>
+                                <h4 style='color:#7f1d1d; margin:0;'>🔴 ESTADO CRÍTICO: PROCESO REBASADO / FUERA DE CONTROL</h4>
+                                <p style='color:#991b1b; margin-top:10px; font-size:11pt;'>
+                                    El proceso industrial opera bajo condiciones inestables de alta merma o retrasos crónicos severos. Se exigen medidas drásticas estructurales inmediatas:
+                                </p>
+                                <ul style='color:#991b1b; font-size:10.5pt;'>
+                                    <li><strong>Justificación de Reemplazo de Activos (CAPEX - Caso Expediente 8):</strong> La obsolescencia de los componentes mecánicos está destruyendo la rentabilidad. Se recomienda utilizar los reportes estadísticos de este simulador para justificar ante la dirección general la compra urgente de maquinaria automatizada de flujo continuo.</li>
+                                    <li><strong>Reingeniería Operativa Inmediata:</strong> Detener temporalmente las operaciones críticas para estabilizar las condiciones cinéticas básicas del reactor y reducir drásticamente el impacto de las sub-operaciones ineficientes.</li>
+                                    <li><strong>Contingencia Legal Contractual:</strong> Revisar con el equipo comercial las penalizaciones vigentes por retrasos en entregas tardías, ya que la probabilidad de fallo actual representa un riesgo comercial severo de demandas o pérdidas de contratos vigentes.</li>
+                                </ul>
+                            </div>
+                        """, unsafe_allow_html=True)
             
             with tab3:
                 # MÓDULO 3: Generador de Datos Sintéticos Monte Carlo
@@ -139,6 +197,10 @@ if archivo is not None:
                 if st.button("▶ EJECUTAR SIMULACIÓN DE ESCENARIOS"):
                     dist_objeto = distribuciones[dist_ganadora]
                     simulados = dist_objeto.rvs(*params_ganadores, size=n_sim)
+                    
+                    # CORRECCIÓN DE SEGURIDAD: Truncamiento inferior para evitar números negativos físicamente imposibles
+                    simulados = np.clip(simulados, a_min=0, a_max=None)
+                    
                     df_sim = pd.DataFrame({"Datos_Simulados_MonteCarlo": simulados})
                     
                     cs1, cs2 = st.columns(2)
@@ -147,7 +209,7 @@ if archivo is not None:
                         st.dataframe(df_sim.head(10), use_container_width=True)
                     with cs2:
                         st.write("💾 **Panel de Exportación Directa:**")
-                        st.info(f"Modelo Matemático Aplicado: {dist_ganadora}\n\nDatos Proyectados con Éxito.")
+                        st.info(f"Modelo Matemático Aplicado: {dist_ganadora}\n\nDatos Proyectados con Éxito sin valores negativos físicos.")
                         
                         # Botón para descargar los datos en formato CSV
                         csv_data = df_sim.to_csv(index=False).encode('utf-8')
