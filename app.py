@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Configuración visual de alta gama corporativa
-st.set_page_config(page_title="DISTRI-FIT PRO v3", layout="wide", page_icon="📊")
+st.set_page_config(page_title="DISTRI-FIT PRO", layout="wide", page_icon="📊")
 
 # Estilos de encabezado industrial
 st.markdown("""
@@ -96,23 +96,28 @@ if archivo is not None:
                 fig.add_trace(go.Scatter(x=x_axis, y=y_axis, mode='lines', name=dist_ganadora, line=dict(color='#3b82f6', width=3.5)))
                 st.plotly_chart(fig, use_container_width=True)
 
-                # NUEVO GRÁFICO 2: Control Estadístico de Procesos (SPC) - Gráfico de Corridas
+                # GRÁFICO 2: Control Estadístico de Procesos (SPC) - SOLUCIONADO
                 st.markdown("---")
                 st.subheader("📉 Auditoría Forense: Gráfico de Control y Tendencia del Proceso (SPC)")
                 st.write("Visualiza la evolución temporal de la variable e identifica rachas fuera de estabilidad:")
                 
                 indices = np.arange(1, len(datos) + 1)
                 fig_spc = go.Figure()
+                
                 # Línea de corridas reales
                 fig_spc.add_trace(go.Scatter(x=indices, y=datos, mode='lines+markers', name='Valor Registrado', line=dict(color='#64748b', width=1.5)))
                 # Línea de Promedio
-                fig_spc.add_trace(go.Scatter(x=indices, y=[np.mean(datos)]*len(datos), mode='lines', name='Línea Central (Promedio)', line=dict(color='#16a34a', dash='dash', width=2)))
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.mean(datos)]*len(datos), mode='lines', name='Promedio Muestral', line=dict(color='#16a34a', dash='dash', width=2)))
                 # Línea de Máximo histórico
-                fig_spc.add_trace(go.Scatter(x=indices, y=[np.max(datos)]*len(datos), mode='lines', name='Línea Máximo', line=dict(color='#dc2626', dash='dot', width=1.5)))
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.max(datos)]*len(datos), mode='lines', name='Máximo Registrado', line=dict(color='#dc2626', dash='dot', width=1.5)))
                 # Línea de Mínimo histórico
-                fig_spc.add_trace(go.Scatter(x=indices, y=[np.min(datos)]*len(datos), mode='lines', name='Línea Mínimo', line=dict(color='#2563eb', dash='dot', width=1.5)))
+                fig_spc.add_trace(go.Scatter(x=indices, y=[np.min(datos)]*len(datos), mode='lines', name='Mínimo Registrado', line=dict(color='#2563eb', dash='dot', width=1.5)))
                 
-                fig_spc.update_layout(title="Evolución Cronológica del Proceso y Líneas de Control Físico", xaxis_title="Orden de Corrida / Lote", yaxis_title="Magnitud Medida", layout_hint="wide")
+                fig_spc.update_layout(
+                    title="Evolución Cronológica del Proceso y Líneas de Límites Físicos", 
+                    xaxis_title="Orden de Corrida / Lote", 
+                    yaxis_title="Magnitud Medida"
+                )
                 st.plotly_chart(fig_spc, use_container_width=True)
             
             with tab2:
@@ -143,7 +148,7 @@ if archivo is not None:
                     st.markdown("---")
                     st.subheader("📋 Consultor de Operaciones Automatizado: Recomendaciones Técnicas")
                     
-                    # NUEVO PLUS: Generador de Recomendaciones Inteligentes Basadas en Riesgo
+                    # Generador de Recomendaciones Inteligentes Basadas en Riesgo
                     if prob_dentro >= 0.90:
                         st.markdown("""
                             <div style='background-color:#f0fdf4; padding:20px; border-radius:8px; border-left:6px solid #16a34a;'>
@@ -180,7 +185,7 @@ if archivo is not None:
                                     El proceso industrial opera bajo condiciones inestables de alta merma o retrasos crónicos severos. Se exigen medidas drásticas estructurales inmediatas:
                                 </p>
                                 <ul style='color:#991b1b; font-size:10.5pt;'>
-                                    <li><strong>Justificación de Reemplazo de Activos (CAPEX - Caso Expediente 8):</strong> La obsolescencia de los componentes mecánicos está destruyendo la rentabilidad. Se recomienda utilizar los reportes estadísticos de este simulador para justificar ante la dirección general la compra urgente de maquinaria automatizada de flujo continuo.</li>
+                                    <li><strong>Justificación de Reemplazo de Activos (CAPEX):</strong> La obsolescencia de los componentes mecánicos está destruyendo la rentabilidad. Se recomienda utilizar los reportes estadísticos de este simulador para justificar ante la dirección general la compra urgente de maquinaria automatizada de flujo continuo.</li>
                                     <li><strong>Reingeniería Operativa Inmediata:</strong> Detener temporalmente las operaciones críticas para estabilizar las condiciones cinéticas básicas del reactor y reducir drásticamente el impacto de las sub-operaciones ineficientes.</li>
                                     <li><strong>Contingencia Legal Contractual:</strong> Revisar con el equipo comercial las penalizaciones vigentes por retrasos en entregas tardías, ya que la probabilidad de fallo actual representa un riesgo comercial severo de demandas o pérdidas de contratos vigentes.</li>
                                 </ul>
@@ -198,7 +203,7 @@ if archivo is not None:
                     dist_objeto = distribuciones[dist_ganadora]
                     simulados = dist_objeto.rvs(*params_ganadores, size=n_sim)
                     
-                    # CORRECCIÓN DE SEGURIDAD: Truncamiento inferior para evitar números negativos físicamente imposibles
+                    # Truncamiento inferior para evitar números negativos físicamente imposibles
                     simulados = np.clip(simulados, a_min=0, a_max=None)
                     
                     df_sim = pd.DataFrame({"Datos_Simulados_MonteCarlo": simulados})
