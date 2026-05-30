@@ -41,7 +41,9 @@ if archivo is not None:
                 c1.metric("Muestra Total (n)", len(datos))
                 c2.metric("Media Muestral (μ)", f"{np.mean(datos):.4f}")
                 c3.metric("Desviación (σ)", f"{np.std(datos):.4f}")
-                c4.metric("Coef. Asimetría", f"{stats.skew(datos):.4f}")
+                
+                asimetria_val = stats.skew(datos)
+                c4.metric("Coef. Asimetría", f"{asimetria_val:.4f}")
                 
                 st.markdown("---")
                 st.subheader("🏆 Tabla de Posiciones de Ajuste (Prueba Kolmogorov-Smirnov)")
@@ -86,6 +88,7 @@ if archivo is not None:
                     st.write("📝 *Nota para simulación:* Copia estos valores exactos en tus modelos de simulación de eventos discretos para replicar el comportamiento real de la planta de forma matemática.")
                 
                 # Gráfica interactiva 1: Histograma vs Curva Teórica
+                st.markdown("---")
                 st.subheader("📈 Verificación Gráfica del Acoplamiento")
                 fig = px.histogram(df, x=columna, nbins=30, histnorm='probability density', 
                                    opacity=0.5, title=f"Histograma Real vs. Modelo Continuo {dist_ganadora}", 
@@ -96,7 +99,16 @@ if archivo is not None:
                 fig.add_trace(go.Scatter(x=x_axis, y=y_axis, mode='lines', name=dist_ganadora, line=dict(color='#3b82f6', width=3.5)))
                 st.plotly_chart(fig, use_container_width=True)
 
-                # GRÁFICO 2: Control Estadístico de Procesos (SPC) - SOLUCIONADO
+                # INTERPRETACIÓN AUTOMÁTICA DEL HISTOGRAMA
+                st.markdown("🔍 **Interpretación del Histograma:**")
+                if abs(asimetria_val) < 0.5:
+                    st.info(f"El gráfico muestra un comportamiento **simétrico** (forma de campana equilibrada). Esto significa que la mayoría de los eventos ocurren muy cerca del promedio ({np.mean(datos):.2f}) y las variaciones extremas hacia arriba o hacia abajo son igualmente raras. Al ser modelado óptimamente por una distribución **{dist_ganadora}**, indica que no existen factores externos sesgando el proceso de manera severa.")
+                elif asimetria_val >= 0.5:
+                    st.info(f"El gráfico presenta un **sesgo positivo (hacia la derecha)**. Esto significa que el proceso tiende a acumular la mayoría de sus datos en valores bajos, pero tiene una 'cola larga' de eventos con valores inusualmente altos. En entornos de manufactura, esto delata la presencia recurrente de retrasos, cuellos de botella u operaciones ineficientes que alargan los tiempos de forma atípica.")
+                else:
+                    st.info(f"El gráfico presenta un **sesgo negativo (hacia la izquierda)**. Esto indica que la muestra tiende a acumularse en los valores más altos, cayendo abruptamente en los rangos bajos. Delata procesos donde existe un límite superior físico restrictivo o un comportamiento de desgaste acelerado antes de estabilizarse.")
+
+                # GRÁFICO 2: Control Estadístico de Procesos (SPC)
                 st.markdown("---")
                 st.subheader("📉 Auditoría Forense: Gráfico de Control y Tendencia del Proceso (SPC)")
                 st.write("Visualiza la evolución temporal de la variable e identifica rachas fuera de estabilidad:")
@@ -119,6 +131,14 @@ if archivo is not None:
                     yaxis_title="Magnitud Medida"
                 )
                 st.plotly_chart(fig_spc, use_container_width=True)
+
+                # INTERPRETACIÓN AUTOMÁTICA DEL GRÁFICO SPC
+                st.markdown("🔍 **Interpretación Forense de Tendencias (SPC):**")
+                # Detección simple de picos repetidos cerca del máximo
+                valores_altos = np.sum(datos > (np.mean(datos) + np.std(datos)))
+                porcentaje_altos = (valores_altos / len(datos)) * 100
+                
+                st.info(f"Este gráfico evalúa la **estabilidad temporal**. La línea central verde marca el comportamiento histórico ideal ({np.mean(datos):.2f}). Se observa que un **{porcentaje_altos:.1f}%** de los datos medidos se encuentran en la zona de alta dispersión (por encima de 1 desviación estándar). Si notas picos consecutivos tocando repetidamente la línea roja superior (Máximo: {np.max(datos):.2f}), el gráfico evidencia fallas mecánicas intermitentes o fatiga de materiales crónicos en esos lotes específicos, rompiendo la predictibilidad del sistema.")
             
             with tab2:
                 # MÓDULO: Gestión y Análisis de Riesgo Operativo
